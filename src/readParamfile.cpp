@@ -64,7 +64,10 @@ void readParamfile(string v_file, struct filekeywords *Paramfile){
     {"VBM_ABSTOL","1.0e-4"},
     {"LC_TIMEOUT","60.0"},
     {"MULTIPLE_SOURCES","0"},
-    {"MULTIPLE_LENSES","0"}
+    {"MULTIPLE_LENSES","0"},
+    // Astrometry controls
+    {"ASTROMETRY_ON","0"},
+    {"ASTROMETRIC_SYS_FLOOR","0.1"} // mas
   };
 
   //For testing which parameters are at their default values
@@ -91,6 +94,13 @@ void readParamfile(string v_file, struct filekeywords *Paramfile){
     {
       Paramfile->basedir = string(tmp);
     }
+
+  // Normalize base paths: a lot of the code concatenates paths like
+  // `basedir + "src/..."` and expects `basedir` to end with '/'.
+  if(!Paramfile->basedir.empty() && Paramfile->basedir.back() != '/')
+    {
+      Paramfile->basedir.push_back('/');
+    }
   cout << "GULLS_BASE_DIR:" << Paramfile->basedir << endl;
   
   if(tmp = getenv("GULLS_INPUT_DIR"))
@@ -111,6 +121,11 @@ void readParamfile(string v_file, struct filekeywords *Paramfile){
     {
       cout << "GULLS_STARS_DIR environment variable not set, assuming it is the same as GULLS_BASE_DIR" << endl;
       Paramfile->starsdir = Paramfile->basedir;
+    }
+
+  if(!Paramfile->starsdir.empty() && Paramfile->starsdir.back() != '/')
+    {
+      Paramfile->starsdir.push_back('/');
     }
 
   if(tmp = getenv("GULLS_PLANETS_DIR"))
@@ -248,6 +263,9 @@ void readParamfile(string v_file, struct filekeywords *Paramfile){
   Paramfile->lc_timeout = stod(pfile["LC_TIMEOUT"]);
   Paramfile->multiple_sources = stoi(pfile["MULTIPLE_SOURCES"]);
   Paramfile->multiple_lenses = stoi(pfile["MULTIPLE_LENSES"]);
+  // Astrometry controls
+  Paramfile->astrometry_on = stoi(pfile["ASTROMETRY_ON"]);
+  Paramfile->astrometry_error_floor_mas = stod(pfile["ASTROMETRIC_SYS_FLOOR"]);
   
   //Obsgroups
   Paramfile->obsgroupstr = pfile["OBS_GROUPS"];
